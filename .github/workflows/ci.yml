@@ -53,6 +53,9 @@ jobs:
       - name: 安装依赖
         run: npm ci
 
+      - name: 确保覆盖率依赖已安装
+        run: npm install --save-dev @vitest/coverage-v8@3.0.7
+
       - name: 运行测试与覆盖率检查
         run: npm run test:coverage
 
