@@ -14,12 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 检出代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # 获取完整历史以支持增量分析
 
       - name: 设置Node.js环境
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18.x"
           cache: "npm"
@@ -42,10 +42,10 @@ jobs:
     needs: code-quality
     steps:
       - name: 检出代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 设置Node.js环境
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18.x"
           cache: "npm"
@@ -57,7 +57,7 @@ jobs:
         run: npm run test:coverage
 
       - name: 上传测试覆盖率报告
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage/
@@ -69,10 +69,10 @@ jobs:
     needs: tests
     steps:
       - name: 检出代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 设置Node.js环境
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18.x"
           cache: "npm"
@@ -102,12 +102,12 @@ jobs:
       security-events: write
     steps:
       - name: 检出代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 初始化CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: javascript, typescript
 
       - name: 执行CodeQL分析
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
