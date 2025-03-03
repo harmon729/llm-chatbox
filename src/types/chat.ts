@@ -67,6 +67,13 @@ export interface LLMResponse {
   created_at?: number; // 创建时间戳
   failed_at?: number; // 失败时间戳，如果失败的话
   status?: string; // 响应状态
+  choices?: Array<{
+    delta?: {
+      content?: string;
+    };
+    index?: number;
+    finish_reason?: string | null;
+  }>; // 流式响应中的选择，与OpenAI格式兼容
   last_error?: {
     // 最后的错误信息
     code: number; // 错误代码
