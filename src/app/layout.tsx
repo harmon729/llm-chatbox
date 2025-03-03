@@ -1,3 +1,4 @@
+import React from "react";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -28,8 +29,14 @@ export default function RootLayout({
               window.ENV_COZE_BOT_ID = "${
                 process.env.NEXT_PUBLIC_COZE_BOT_ID || ""
               }";
+              window.ENV_COZE_API_KEY = "${
+                process.env.NEXT_PUBLIC_COZE_API_KEY || ""
+              }";
               window.ENV_COZE_SHORTCUT_COMMAND_ID = "${
                 process.env.NEXT_PUBLIC_COZE_SHORTCUT_COMMAND_ID || ""
+              }";
+              window.ENV_API_BASE_URL = "${
+                process.env.NEXT_PUBLIC_API_BASE_URL || ""
               }";
             `,
           }}
