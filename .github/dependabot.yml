@@ -1,0 +1,32 @@
+version: 2
+updates:
+  # 前端依赖更新配置
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "📦"
+      include: "scope"
+    # 忽略某些依赖更新（如果需要）
+    # ignore:
+    #  - dependency-name: "some-package"
+    #    versions: [">=4.0.0"]
+
+  # GitHub Actions更新配置
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "⚙️"
+      include: "scope"
