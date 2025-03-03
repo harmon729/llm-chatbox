@@ -125,8 +125,17 @@ npm run test:coverage
      - 构建产物缓存，提高部署效率
 
 2. **CD 流程**：
-   - 主分支代码合并后自动部署到生产环境
+
+   - 主分支代码合并后自动部署到 Vercel 生产环境
    - 支持多环境部署（预发布和生产环境）
+
+   > **注意**：部署到 Vercel 需要在 GitHub 仓库设置中添加以下密钥：
+   >
+   > - `VERCEL_TOKEN`: Vercel 账户令牌
+   > - `VERCEL_ORG_ID`: Vercel 组织 ID
+   > - `VERCEL_PROJECT_ID`: Vercel 项目 ID
+   >
+   > 这些值可以从 Vercel 控制台获取。
 
 ## 兼容性
 
