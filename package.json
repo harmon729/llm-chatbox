@@ -34,7 +34,7 @@
     "audit-ci": "^6.6.1",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.56.0",
-    "eslint-config-next": "^14.1.0",
+    "eslint-config-next": "^15.2.0",
     "eslint-plugin-react": "^7.33.2",
     "jsdom": "^24.0.0",
     "lint-staged": "^15.2.0",
