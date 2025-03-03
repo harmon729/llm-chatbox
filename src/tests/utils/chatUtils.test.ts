@@ -39,7 +39,14 @@ describe("聊天工具函数", () => {
 
     it("应支持添加媒体内容", () => {
       const content = "测试消息";
-      const media = [{ type: MediaType.Image, data: "test-data" }];
+      const media = [
+        {
+          type: MediaType.Image,
+          url: "test-url.jpg",
+          name: "test-image.jpg",
+          size: 1024,
+        },
+      ];
       const message = createUserMessage(content, media);
 
       expect(message.media).toBe(media);
