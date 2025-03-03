@@ -86,7 +86,7 @@ jobs:
           CI: false
 
       - name: 缓存构建产物
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .next
           key: ${{ runner.os }}-nextjs-${{ github.sha }}
