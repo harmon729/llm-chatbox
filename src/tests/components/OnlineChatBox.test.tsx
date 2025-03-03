@@ -1,5 +1,11 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import OnlineChatBox from "../../components/OnlineChatBox";
 import { MessageRole, MessageStatus } from "../../types/chat";
 import { sendMessageToAPI } from "../../services/apiService";
@@ -15,6 +21,7 @@ describe("OnlineChatBox组件", () => {
     vi.clearAllMocks();
   });
 
+  // 基本渲染测试
   it("应渲染初始空聊天框", () => {
     render(<OnlineChatBox />);
 
@@ -25,6 +32,7 @@ describe("OnlineChatBox组件", () => {
     expect(screen.getByPlaceholderText("输入消息...")).toBeInTheDocument();
   });
 
+  // 初始消息测试
   it("应正确渲染初始消息", () => {
     const initialMessages = [
       {
@@ -48,8 +56,14 @@ describe("OnlineChatBox组件", () => {
     // 应显示初始消息
     expect(screen.getByText("用户消息")).toBeInTheDocument();
     expect(screen.getByText("机器人回复")).toBeInTheDocument();
+
+    // 当有消息时不应显示空状态
+    expect(
+      screen.queryByText("开始对话吧！发送一条消息。")
+    ).not.toBeInTheDocument();
   });
 
+  // 系统消息测试
   it("应正确渲染系统消息", () => {
     render(<OnlineChatBox systemMessage="系统消息" />);
 
@@ -62,6 +76,7 @@ describe("OnlineChatBox组件", () => {
     ).not.toBeInTheDocument();
   });
 
+  // 消息发送测试
   it("应允许用户发送消息", async () => {
     // 模拟API响应
     (sendMessageToAPI as any).mockResolvedValue("AI回复");
@@ -86,6 +101,51 @@ describe("OnlineChatBox组件", () => {
     });
   });
 
+  // 测试发送空消息
+  it("应忽略空消息", () => {
+    render(<OnlineChatBox />);
+
+    // 获取输入框并输入空消息
+    const input = screen.getByPlaceholderText("输入消息...");
+    fireEvent.change(input, { target: { value: "   " } });
+
+    // 获取发送按钮并点击
+    const sendButton = screen.getByLabelText("发送消息");
+    fireEvent.click(sendButton);
+
+    // API不应被调用
+    expect(sendMessageToAPI).not.toHaveBeenCalled();
+  });
+
+  // 测试加载状态
+  it("应在消息发送过程中显示加载状态", async () => {
+    // 模拟API响应延迟
+    (sendMessageToAPI as any).mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve("AI回复"), 100))
+    );
+
+    render(<OnlineChatBox />);
+
+    // 发送消息
+    const input = screen.getByPlaceholderText("输入消息...");
+    fireEvent.change(input, { target: { value: "测试消息" } });
+    const sendButton = screen.getByLabelText("发送消息");
+
+    await act(async () => {
+      fireEvent.click(sendButton);
+      // 加载指示器应显示
+      expect(screen.getByText("正在思考...")).toBeInTheDocument();
+    });
+
+    // 等待响应完成
+    await waitFor(() => {
+      expect(screen.getByText("AI回复")).toBeInTheDocument();
+      // 加载指示器应消失
+      expect(screen.queryByText("正在思考...")).not.toBeInTheDocument();
+    });
+  });
+
+  // 自定义placeholder测试
   it("应自定义placeholder", () => {
     const customPlaceholder = "自定义占位符";
     render(<OnlineChatBox placeholder={customPlaceholder} />);
@@ -93,6 +153,7 @@ describe("OnlineChatBox组件", () => {
     expect(screen.getByPlaceholderText(customPlaceholder)).toBeInTheDocument();
   });
 
+  // 自定义样式测试
   it("应接受自定义样式类名", () => {
     render(
       <OnlineChatBox
@@ -110,6 +171,7 @@ describe("OnlineChatBox组件", () => {
     expect(messagesContainer).not.toBeNull();
   });
 
+  // 错误处理测试
   it("应在API错误时调用onError回调", async () => {
     const mockError = new Error("API错误");
     (sendMessageToAPI as any).mockRejectedValue(mockError);
@@ -123,14 +185,18 @@ describe("OnlineChatBox组件", () => {
 
     // 获取发送按钮并点击
     const sendButton = screen.getByLabelText("发送消息");
-    fireEvent.click(sendButton);
+
+    await act(async () => {
+      fireEvent.click(sendButton);
+    });
 
     // 等待错误处理
     await waitFor(() => {
-      expect(onErrorMock).toHaveBeenCalled();
+      expect(onErrorMock).toHaveBeenCalledWith(mockError);
     });
   });
 
+  // 自定义加载指示器测试
   it("应接受自定义加载指示器", async () => {
     // 模拟长时间运行的API调用
     (sendMessageToAPI as any).mockImplementation(
@@ -148,8 +214,10 @@ describe("OnlineChatBox组件", () => {
     fireEvent.change(input, { target: { value: "测试消息" } });
 
     // 获取发送按钮并点击
-    const sendButton = screen.getByLabelText("发送消息");
-    fireEvent.click(sendButton);
+    await act(async () => {
+      const sendButton = screen.getByLabelText("发送消息");
+      fireEvent.click(sendButton);
+    });
 
     // 检查自定义加载指示器是否显示
     await waitFor(() => {
@@ -158,6 +226,7 @@ describe("OnlineChatBox组件", () => {
     });
   });
 
+  // 自定义空状态测试
   it("应接受自定义空状态组件", () => {
     render(
       <OnlineChatBox
@@ -167,5 +236,35 @@ describe("OnlineChatBox组件", () => {
 
     // 应显示自定义空状态
     expect(screen.getByTestId("custom-empty")).toBeInTheDocument();
+  });
+
+  // 输入框禁用测试
+  it("应在加载状态下禁用输入框", async () => {
+    // 模拟长时间运行的API调用
+    (sendMessageToAPI as any).mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve("回复"), 500))
+    );
+
+    render(<OnlineChatBox />);
+
+    // 发送消息
+    const input = screen.getByPlaceholderText(
+      "输入消息..."
+    ) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "测试消息" } });
+
+    await act(async () => {
+      const sendButton = screen.getByLabelText("发送消息");
+      fireEvent.click(sendButton);
+      // 在加载状态下输入框应被禁用
+      expect(input.disabled).toBe(true);
+    });
+
+    // 等待响应完成
+    await waitFor(() => {
+      expect(screen.getByText("回复")).toBeInTheDocument();
+      // 加载完成后输入框应重新启用
+      expect(input.disabled).toBe(false);
+    });
   });
 });
