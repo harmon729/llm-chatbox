@@ -19,9 +19,23 @@ const ERROR_MESSAGES = {
 
 // Coze配置
 const COZE_CONFIG = {
-  // 如果有环境变量则使用环境变量，否则使用默认值（应该在运行时被正确设置）
+  // 如果有环境变量则使用环境变量，否则使用默认值
+  API_BASE_URL:
+    typeof window !== "undefined"
+      ? window.ENV_COZE_API_BASE_URL
+      : process.env.NEXT_PUBLIC_COZE_API_BASE_URL || "",
+  BOT_ID:
+    typeof window !== "undefined"
+      ? window.ENV_COZE_BOT_ID
+      : process.env.NEXT_PUBLIC_COZE_BOT_ID || "",
+  API_KEY:
+    typeof window !== "undefined"
+      ? window.ENV_COZE_API_KEY
+      : process.env.NEXT_PUBLIC_COZE_API_KEY || "",
   SHORTCUT_COMMAND_ID:
-    typeof window !== "undefined" ? window.ENV_COZE_SHORTCUT_COMMAND_ID : null,
+    typeof window !== "undefined"
+      ? window.ENV_COZE_SHORTCUT_COMMAND_ID
+      : process.env.NEXT_PUBLIC_COZE_SHORTCUT_COMMAND_ID || "",
 };
 
 /**
