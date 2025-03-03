@@ -27,7 +27,7 @@
 
 "use client";
 
-import { useState, useRef, useEffect, KeyboardEvent, ChangeEvent } from "react";
+import React from "react";
 import { MediaContent } from "@/types/chat";
 import { fileToMediaContent, isImageFile, isPdfFile } from "@/utils/fileUtils";
 
@@ -40,6 +40,7 @@ import { fileToMediaContent, isImageFile, isPdfFile } from "@/utils/fileUtils";
  * @property {string} [placeholder] - 输入框占位文本，可选
  * @property {boolean} [initialFocus] - 是否自动聚焦，可选
  * @property {boolean} [minimal] - 是否使用最小化样式(减少内边距)，可选
+ * @property {string} [className] - 自定义CSS类名，可选
  */
 interface ChatInputProps {
   isLoading: boolean;
@@ -47,6 +48,7 @@ interface ChatInputProps {
   placeholder?: string; // ? 表示可选属性
   initialFocus?: boolean; // ? 表示可选属性
   minimal?: boolean; // ? 表示可选属性
+  className?: string; // 添加className属性
 }
 
 /**
@@ -62,16 +64,17 @@ const ChatInput: React.FC<ChatInputProps> = ({
   placeholder = "输入您的问题...", // 设置默认值
   initialFocus = false, // 设置默认值
   minimal = false, // 设置默认值
+  className, // 获取className属性
 }) => {
   // 状态管理
   // useState钩子用于创建和管理组件的状态
-  const [inputText, setInputText] = useState(""); // 文本输入状态
-  const [mediaFiles, setMediaFiles] = useState<MediaContent[]>([]); // 媒体文件状态
+  const [inputText, setInputText] = React.useState(""); // 文本输入状态
+  const [mediaFiles, setMediaFiles] = React.useState<MediaContent[]>([]); // 媒体文件状态
 
   // 引用DOM元素
   // useRef钩子创建可变引用，在组件整个生命周期内保持不变
-  const textAreaRef = useRef<HTMLTextAreaElement>(null); // 文本输入区域引用
-  const fileInputRef = useRef<HTMLInputElement>(null); // 文件输入框引用
+  const textAreaRef = React.useRef<HTMLTextAreaElement>(null); // 文本输入区域引用
+  const fileInputRef = React.useRef<HTMLInputElement>(null); // 文件输入框引用
 
   /**
    * 自动调整文本框高度
@@ -80,7 +83,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
    * useEffect钩子用于处理副作用，例如DOM操作
    * 依赖数组[inputText]表示只有当inputText变化时才执行此效果
    */
-  useEffect(() => {
+  React.useEffect(() => {
     if (textAreaRef.current) {
       // 先重置高度为auto，以便正确计算scrollHeight
       textAreaRef.current.style.height = "auto";
@@ -98,7 +101,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
    *
    * 依赖数组[initialFocus]表示只有当initialFocus变化时才执行此效果
    */
-  useEffect(() => {
+  React.useEffect(() => {
     if (initialFocus && textAreaRef.current) {
       textAreaRef.current.focus(); // 设置聚焦
     }
@@ -110,7 +113,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
    *
    * @param {ChangeEvent<HTMLTextAreaElement>} e - 文本输入事件对象
    */
-  const handleTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputText(e.target.value); // 更新文本状态为输入框的当前值
   };
 
@@ -122,7 +125,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
    *
    * @param {KeyboardEvent<HTMLTextAreaElement>} e - 键盘事件对象
    */
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey && !isLoading) {
       e.preventDefault(); // 阻止默认行为（换行）
       handleSendMessage(); // 调用发送消息函数
@@ -139,7 +142,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
    *
    * @param {ChangeEvent<HTMLInputElement>} e - 文件输入事件对象
    */
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     // 检查是否选择了文件
     if (!e.target.files || e.target.files.length === 0) {
       return;
@@ -234,7 +237,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
    *
    * @param {KeyboardEvent<HTMLLabelElement>} e - 键盘事件对象
    */
-  const handleFileKeyDown = (e: KeyboardEvent<HTMLLabelElement>) => {
+  const handleFileKeyDown = (e: React.KeyboardEvent<HTMLLabelElement>) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault(); // 阻止默认行为
       fileInputRef.current?.click(); // 触发文件选择对话框
@@ -243,7 +246,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   // 组件渲染结构
   return (
-    <div className={`flex flex-col w-full ${minimal ? "p-2" : "p-4"}`}>
+    <div
+      className={`flex flex-col w-full ${minimal ? "p-2" : "p-4"} ${
+        className || ""
+      }`}
+    >
       {/* 已上传的媒体文件预览区域 */}
       {mediaFiles.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-2">
