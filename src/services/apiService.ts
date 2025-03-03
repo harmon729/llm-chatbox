@@ -43,3 +43,18 @@ export const sendMessageToAI = async (
   // 使用Coze服务发送消息
   return sendMessageToCoze(message, media, onChunk, onComplete);
 };
+
+/**
+ * 发送消息到API并返回响应文本
+ * 这是一个简化版函数，用于OnlineChatBox组件测试
+ *
+ * @param {string} message - 要发送的消息内容
+ * @returns {Promise<string>} 返回API响应内容
+ */
+export const sendMessageToAPI = async (message: string): Promise<string> => {
+  // 模拟网络延迟
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  // 简单的响应逻辑用于测试
+  return `这是对"${message}"的回复`;
+};

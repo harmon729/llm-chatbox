@@ -79,3 +79,67 @@ export const splitTextByCodeBlocks = (
 
   return parts;
 };
+
+/**
+ * 检测文本是否包含Markdown语法
+ *
+ * @param {string} text - 要检查的文本内容
+ * @returns {boolean} 如果包含Markdown语法则返回true，否则返回false
+ */
+export const containsMarkdown = (text: string): boolean => {
+  if (!text || text.trim() === "") return false;
+
+  // 检测常见的Markdown语法特征
+  const markdownPatterns = [
+    /^#{1,6}\s+/m, // 标题
+    /(\*\*|__).+?(\*\*|__)/, // 粗体
+    /(\*|_).+?(\*|_)/, // 斜体
+    /`{1,3}[\s\S]*?`{1,3}/, // 行内代码和代码块
+    /\[.+?\]\(.+?\)/, // 链接
+    /!\[.+?\]\(.+?\)/, // 图片
+    /^[-*+]\s+/m, // 无序列表
+    /^\d+\.\s+/m, // 有序列表
+    /^>\s+/m, // 引用
+    /\|(.+?\|)+/m, // 表格
+    /~~.+?~~/, // 删除线
+  ];
+
+  return markdownPatterns.some((pattern) => pattern.test(text));
+};
+
+/**
+ * 从Markdown文本中提取纯文本内容
+ *
+ * @param {string} markdown - 包含Markdown语法的文本
+ * @returns {string} 去除Markdown语法后的纯文本
+ */
+export const extractTextFromMarkdown = (markdown: string): string => {
+  if (!markdown) return "";
+
+  // 1. 移除代码块及其内容
+  let text = markdown.replace(/```[\s\S]*?```/g, "");
+
+  // 2. 提取图片alt文本，但保留链接文本
+  text = text
+    .replace(/!\[(.+?)\]\(.+?\)/g, "") // 移除图片，不保留alt文本
+    .replace(/\[(.+?)\]\(.+?\)/g, "$1"); // 保留链接文本
+
+  // 3. 移除各类Markdown标记，但保留内容
+  text = text
+    .replace(/^#{1,6}\s+(.+)$/gm, "$1") // 标题
+    .replace(/(\*\*|__)(.*?)(\*\*|__)/g, "$2") // 粗体
+    .replace(/(\*|_)(.*?)(\*|_)/g, "$2") // 斜体
+    .replace(/~~(.*?)~~/g, "$1") // 删除线
+    .replace(/`([^`]+)`/g, "$1") // 行内代码
+    .replace(/^\s*>\s+(.*)$/gm, "$1") // 引用
+    .replace(/^\s*[-*+]\s+(.*)$/gm, "$1") // 无序列表
+    .replace(/^\s*\d+\.\s+(.*)$/gm, "$1"); // 有序列表
+
+  // 4. 简单处理表格：保留单元格内容，用空格分隔
+  text = text.replace(/\|([^|]+)\|/g, "$1 ");
+
+  // 5. 清理多余空白字符
+  text = text.replace(/\s+/g, " ").trim();
+
+  return text;
+};
