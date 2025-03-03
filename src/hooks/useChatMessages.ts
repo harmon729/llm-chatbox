@@ -78,17 +78,67 @@ const createBotMessage = (
  *
  * @returns {Object} 包含消息状态和操作函数的对象
  */
-export const useChatMessages = () => {
+export const useChatMessages = (initialMessages: Message[] = []) => {
   // 使用useState钩子管理消息列表状态
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
 
   // 使用useState钩子管理加载状态
   const [isLoading, setIsLoading] = useState(false);
+
+  // 使用useState钩子管理错误状态
+  const [error, setError] = useState<Error | null>(null);
 
   // 使用useRef保存取消当前请求的函数
   // useRef返回一个可变对象，其.current属性被初始化为传入的参数
   // useRef的值在组件的整个生命周期内保持不变
   const cancelRequest = useRef<(() => void) | null>(null);
+
+  /**
+   * 添加新消息
+   *
+   * @param {Message} message - 要添加的消息对象
+   * @returns {string} 添加的消息ID
+   */
+  const addMessage = useCallback((message: Message): string => {
+    const newMessage = {
+      ...message,
+      id: message.id || generateId(),
+      timestamp: message.timestamp || Date.now(),
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
+    return newMessage.id;
+  }, []);
+
+  /**
+   * 更新最后一条消息
+   *
+   * @param {string} content - 更新后的消息内容
+   */
+  const updateLastMessage = useCallback((content: string) => {
+    setMessages((prev) => {
+      if (prev.length === 0) return prev;
+
+      const newMessages = [...prev];
+      const lastIndex = newMessages.length - 1;
+      newMessages[lastIndex] = {
+        ...newMessages[lastIndex],
+        content,
+        status: MessageStatus.Success,
+      };
+
+      return newMessages;
+    });
+  }, []);
+
+  /**
+   * 删除指定ID的消息
+   *
+   * @param {string} id - 要删除的消息ID
+   */
+  const deleteMessage = useCallback((id: string) => {
+    setMessages((prev) => prev.filter((message) => message.id !== id));
+  }, []);
 
   /**
    * 发送消息到AI
@@ -112,6 +162,9 @@ export const useChatMessages = () => {
         cancelRequest.current = null;
       }
 
+      // 清除之前的错误
+      setError(null);
+
       // 创建用户消息对象
       const userMessage = createUserMessage(text, media);
 
@@ -124,38 +177,62 @@ export const useChatMessages = () => {
       // 设置加载状态为true
       setIsLoading(true);
 
-      // 发送消息到AI服务并处理流式响应
-      const cancel = await sendMessageToAI(
-        text, // 消息文本
-        media, // 媒体内容
-        (chunk: string) => {
-          // 流式响应回调处理函数
-          // 更新机器人消息内容，附加新接收的内容块
-          setMessages((prevMessages) => {
-            const updatedMessages = [...prevMessages]; // 创建消息数组的副本
-            const lastMessage = updatedMessages[updatedMessages.length - 1]; // 获取最后一条消息
+      try {
+        // 发送消息到AI服务并处理流式响应
+        const cancel = await sendMessageToAI(
+          text, // 消息文本
+          media, // 媒体内容
+          (chunk: string) => {
+            // 流式响应回调处理函数
+            // 更新机器人消息内容，附加新接收的内容块
+            setMessages((prevMessages) => {
+              const updatedMessages = [...prevMessages]; // 创建消息数组的副本
+              const lastMessage = updatedMessages[updatedMessages.length - 1]; // 获取最后一条消息
 
-            if (lastMessage && lastMessage.role === MessageRole.Bot) {
-              // 如果最后一条消息是机器人消息，则更新它
-              updatedMessages[updatedMessages.length - 1] = {
-                ...lastMessage, // 保留原消息的所有属性
-                content: lastMessage.content + chunk, // 附加新的内容块
-                status: MessageStatus.Success, // 更新状态为成功
-              };
-            }
+              if (lastMessage && lastMessage.role === MessageRole.Bot) {
+                // 如果最后一条消息是机器人消息，则更新它
+                updatedMessages[updatedMessages.length - 1] = {
+                  ...lastMessage, // 保留原消息的所有属性
+                  content: lastMessage.content + chunk, // 附加新的内容块
+                  status: MessageStatus.Success, // 更新状态为成功
+                };
+              }
 
-            return updatedMessages; // 返回更新后的消息数组
-          });
-        },
-        // 响应完成回调
-        () => {
-          console.log("聊天响应完成，重置加载状态");
-          setIsLoading(false); // 重置加载状态
-        }
-      );
+              return updatedMessages; // 返回更新后的消息数组
+            });
+          },
+          // 响应完成回调
+          () => {
+            console.log("聊天响应完成，重置加载状态");
+            setIsLoading(false); // 重置加载状态
+          }
+        );
 
-      // 保存取消函数到ref，以便在需要时取消请求
-      cancelRequest.current = cancel;
+        // 保存取消函数到ref，以便在需要时取消请求
+        cancelRequest.current = cancel;
+      } catch (err) {
+        // 处理错误情况
+        setError(err instanceof Error ? err : new Error(String(err)));
+
+        // 更新最后一条消息为错误状态
+        setMessages((prevMessages) => {
+          const updatedMessages = [...prevMessages];
+          const lastMessage = updatedMessages[updatedMessages.length - 1];
+
+          if (lastMessage && lastMessage.role === MessageRole.Bot) {
+            updatedMessages[updatedMessages.length - 1] = {
+              ...lastMessage,
+              status: MessageStatus.Error,
+              content: lastMessage.content || "发生错误，请重试",
+            };
+          }
+
+          return updatedMessages;
+        });
+
+        // 重置加载状态
+        setIsLoading(false);
+      }
 
       // 注意：不要在这里设置isLoading为false
       // 而是依赖onComplete回调来设置isLoading状态
@@ -181,6 +258,9 @@ export const useChatMessages = () => {
 
     // 重置加载状态
     setIsLoading(false);
+
+    // 清除错误状态
+    setError(null);
   }, []); // 依赖数组为空，表示这个函数不依赖于任何props或state
 
   /**
@@ -203,7 +283,13 @@ export const useChatMessages = () => {
   return {
     messages, // 消息列表
     isLoading, // 加载状态
+    error, // 错误状态
     sendMessage, // 发送消息函数
     clearMessages, // 清空消息函数
+    addMessage, // 添加消息函数
+    updateLastMessage, // 更新最后一条消息函数
+    deleteMessage, // 删除消息函数
+    setIsLoading, // 设置加载状态函数
+    setError, // 设置错误状态函数
   };
 };

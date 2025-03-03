@@ -27,7 +27,7 @@
 
 "use client";
 
-import React from "react";
+import * as React from "react";
 import { MediaContent } from "@/types/chat";
 import { fileToMediaContent, isImageFile, isPdfFile } from "@/utils/fileUtils";
 
@@ -108,8 +108,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   }, [initialFocus]);
 
   /**
-   * 处理文本变化
-   * 更新输入文本状态
+   * 处理文本输入变化
+   * 更新inputText状态
    *
    * @param {ChangeEvent<HTMLTextAreaElement>} e - 文本输入事件对象
    */
@@ -118,10 +118,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   /**
-   * 处理键盘事件
-   * 按下Enter键(非Shift+Enter)时发送消息
-   *
-   * 按住Shift+Enter可以换行而不发送消息
+   * 处理按键事件
+   * 当用户按下Enter键（非Shift+Enter）且不在加载状态时发送消息
    *
    * @param {KeyboardEvent<HTMLTextAreaElement>} e - 键盘事件对象
    */
@@ -133,12 +131,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   /**
-   * 处理文件变化
-   * 上传图片或PDF文件时的处理逻辑
-   *
-   * 修改提示：
-   * - 支持更多文件类型：修改validFiles的过滤条件
-   * - 修改文件大小限制：添加文件大小检查
+   * 处理文件选择变化
+   * 将选择的文件转换为MediaContent对象并添加到状态
    *
    * @param {ChangeEvent<HTMLInputElement>} e - 文件输入事件对象
    */
@@ -148,10 +142,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
       return;
     }
 
-    // 将FileList转换为数组以便处理
+    // 筛选有效文件（图片或PDF）
     const files = Array.from(e.target.files);
     // 将文件转换为MediaContent对象
-    const mediaPromises = files.map((file) => fileToMediaContent(file));
+    const mediaPromises = files.map((file) => fileToMediaContent(file as File));
     // 等待所有转换完成
     const mediaContents = await Promise.all(mediaPromises);
 
@@ -231,9 +225,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   /**
-   * 处理文件上传按钮的键盘事件
-   * 按下Enter键或空格键时触发文件选择
-   * 用于提升无障碍访问体验
+   * 处理文件按键事件
+   * 当按下Enter或空格键时触发文件选择
    *
    * @param {KeyboardEvent<HTMLLabelElement>} e - 键盘事件对象
    */

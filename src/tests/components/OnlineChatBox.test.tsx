@@ -271,7 +271,7 @@ describe("OnlineChatBox组件", () => {
     await waitFor(() => {
       // 在加载状态下，发送按钮应该被禁用
       const disabledSendButton = screen.getByLabelText("发送消息");
-      expect(disabledSendButton.disabled).toBe(true);
+      expect(disabledSendButton.getAttribute("disabled")).not.toBeNull();
     });
 
     // 解析Promise，模拟API调用完成
@@ -286,7 +286,7 @@ describe("OnlineChatBox组件", () => {
 
       // 现在发送按钮应该被启用
       const enabledSendButton = screen.getByLabelText("发送消息");
-      expect(enabledSendButton.disabled).toBe(false);
+      expect(enabledSendButton.getAttribute("disabled")).toBeNull();
     });
   });
 });
