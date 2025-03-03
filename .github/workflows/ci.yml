@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 检出代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # 获取完整历史以支持增量分析
 
@@ -42,7 +42,7 @@ jobs:
     needs: code-quality
     steps:
       - name: 检出代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 设置Node.js环境
         uses: actions/setup-node@v3
@@ -69,7 +69,7 @@ jobs:
     needs: tests
     steps:
       - name: 检出代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 设置Node.js环境
         uses: actions/setup-node@v3
@@ -100,7 +100,7 @@ jobs:
       security-events: write
     steps:
       - name: 检出代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 初始化CodeQL
         uses: github/codeql-action/init@v2
