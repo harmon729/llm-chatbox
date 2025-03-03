@@ -1,6 +1,6 @@
 # 【前端项目一】LLM 对话框组件 2.0
 
-![CI 状态](https://github.com/{你的GitHub用户名}/llm-chatbox/actions/workflows/ci.yml/badge.svg)
+![CI 状态](https://github.com/harmon729/llm-chatbox/actions/workflows/ci.yml/badge.svg)
 
 ## 项目介绍
 
