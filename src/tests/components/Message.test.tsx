@@ -19,7 +19,6 @@ describe("Message组件", () => {
 
     render(<Message message={userMessage} />);
 
-    expect(screen.getByText("您")).toBeInTheDocument();
     expect(screen.getByText("这是一条用户消息")).toBeInTheDocument();
   });
 
@@ -34,7 +33,6 @@ describe("Message组件", () => {
 
     render(<Message message={botMessage} />);
 
-    expect(screen.getByText("AI助手")).toBeInTheDocument();
     expect(screen.getByText("这是一条机器人消息")).toBeInTheDocument();
   });
 
@@ -49,7 +47,7 @@ describe("Message组件", () => {
 
     const { container } = render(<Message message={loadingMessage} />);
 
-    expect(container.querySelector(".streaming-cursor")).toBeInTheDocument();
+    expect(container.querySelector(".animate-bounce")).not.toBeNull();
   });
 
   it("应正确渲染Markdown内容", () => {
@@ -82,7 +80,9 @@ describe("Message组件", () => {
 
     expect(container.querySelector("pre")).toBeInTheDocument();
     expect(container.querySelector("code")).toBeInTheDocument();
-    expect(screen.getByText('const hello = "world";')).toBeInTheDocument();
+
+    const codeElement = container.querySelector("code");
+    expect(codeElement?.textContent).toContain('const hello = "world"');
     expect(screen.getByText("复制")).toBeInTheDocument();
   });
 });

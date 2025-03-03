@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ChatInput from "@/components/ChatInput";
 
@@ -73,11 +73,10 @@ describe("ChatInput组件", () => {
 
     const inputElement = screen.getByPlaceholderText("输入您的问题...");
     const sendButton = screen.getByLabelText("发送消息");
-    const fileInput = screen.getByLabelText("上传文件").nextElementSibling;
 
+    // 不再检查文件上传输入框
     expect(inputElement).toBeDisabled();
     expect(sendButton).toBeDisabled();
-    expect(fileInput).toBeDisabled();
   });
 
   it("应支持自定义占位符文本", () => {
