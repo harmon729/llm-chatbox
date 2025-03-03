@@ -303,7 +303,12 @@ export const sendMessageToCoze = async (
       } catch (error) {
         console.error("读取流出错:", error);
 
-        if (error.name === "AbortError") {
+        if (
+          error &&
+          typeof error === "object" &&
+          "name" in error &&
+          error.name === "AbortError"
+        ) {
           console.log("请求被中断");
         } else {
           console.error("读取流出错:", error);
@@ -328,7 +333,12 @@ export const sendMessageToCoze = async (
     };
   } catch (error) {
     console.error("请求错误:", error);
-    if (error.name === "AbortError") {
+    if (
+      error &&
+      typeof error === "object" &&
+      "name" in error &&
+      error.name === "AbortError"
+    ) {
       console.log("请求被中断");
     } else {
       onChunk(ERROR_MESSAGES.NETWORK);
