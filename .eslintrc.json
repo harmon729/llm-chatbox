@@ -7,7 +7,11 @@
   "plugins": ["react"],
   "rules": {
     "react/react-in-jsx-scope": "off",
-    "react/prop-types": "off"
+    "react/prop-types": "off",
+    "no-unused-vars": "warn",
+    "no-undef": "warn",
+    "no-constant-condition": "warn",
+    "@next/next/no-img-element": "warn"
   },
   "settings": {
     "react": {
