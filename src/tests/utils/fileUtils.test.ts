@@ -10,6 +10,17 @@ import {
 } from "../../utils/fileUtils";
 import { MediaType } from "../../types/chat";
 
+// 添加FileReader类型定义
+interface MockFileReader {
+  onload: ((this: MockFileReader, ev: ProgressEvent<FileReader>) => any) | null;
+  onerror:
+    | ((this: MockFileReader, ev: ProgressEvent<FileReader>) => any)
+    | null;
+  readAsDataURL: (blob: Blob) => void;
+  result: string | ArrayBuffer | null;
+  error?: Error | null;
+}
+
 describe("fileUtils", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -56,22 +67,29 @@ describe("fileUtils", () => {
   describe("fileToDataUrl", () => {
     it("应该正确转换文件为dataURL", async () => {
       // 模拟FileReader行为
-      const mockFileReaderInstance = {
-        onload: null as any,
-        onerror: null as any,
-        readAsDataURL: vi.fn().mockImplementation(function () {
-          // 调用readAsDataURL后异步触发onload
-          setTimeout(() => {
-            this.result = mockDataUrl;
-            this.onload();
-          }, 0);
-        }),
+      const mockFileReader = {
+        onload: null as
+          | ((this: MockFileReader, ev: ProgressEvent<FileReader>) => any)
+          | null,
+        onerror: null as
+          | ((this: MockFileReader, ev: ProgressEvent<FileReader>) => any)
+          | null,
+        readAsDataURL: vi
+          .fn()
+          .mockImplementation(function (this: MockFileReader) {
+            // 调用readAsDataURL后异步触发onload
+            setTimeout(() => {
+              this.result = mockDataUrl;
+              if (this.onload)
+                this.onload.call(this, new ProgressEvent("load") as any);
+            }, 0);
+          }),
         result: null,
       };
 
       // 模拟全局FileReader构造函数
       const originalFileReader = global.FileReader;
-      global.FileReader = vi.fn(() => mockFileReaderInstance) as any;
+      global.FileReader = vi.fn(() => mockFileReader) as any;
 
       // 创建测试文件
       const file = new File(["test content"], "test.jpg", {
@@ -83,7 +101,7 @@ describe("fileUtils", () => {
 
       // 验证结果
       expect(result).toBe(mockDataUrl);
-      expect(mockFileReaderInstance.readAsDataURL).toHaveBeenCalledWith(file);
+      expect(mockFileReader.readAsDataURL).toHaveBeenCalledWith(file);
 
       // 恢复原始FileReader
       global.FileReader = originalFileReader;
@@ -92,22 +110,30 @@ describe("fileUtils", () => {
     it("应该在FileReader错误时拒绝Promise", async () => {
       // 模拟FileReader错误行为
       const mockError = new Error("读取文件失败");
-      const mockFileReaderInstance = {
-        onload: null as any,
-        onerror: null as any,
-        readAsDataURL: vi.fn().mockImplementation(function () {
-          // 调用readAsDataURL后异步触发onerror
-          setTimeout(() => {
-            this.error = mockError;
-            this.onerror();
-          }, 0);
-        }),
-        error: null,
+      const mockFileReader = {
+        onload: null as
+          | ((this: MockFileReader, ev: ProgressEvent<FileReader>) => any)
+          | null,
+        onerror: null as
+          | ((this: MockFileReader, ev: ProgressEvent<FileReader>) => any)
+          | null,
+        readAsDataURL: vi
+          .fn()
+          .mockImplementation(function (this: MockFileReader) {
+            // 调用readAsDataURL后异步触发onerror
+            setTimeout(() => {
+              this.error = mockError;
+              if (this.onerror)
+                this.onerror.call(this, new ProgressEvent("error") as any);
+            }, 0);
+          }),
+        error: null as Error | null,
+        result: null,
       };
 
       // 模拟全局FileReader构造函数
       const originalFileReader = global.FileReader;
-      global.FileReader = vi.fn(() => mockFileReaderInstance) as any;
+      global.FileReader = vi.fn(() => mockFileReader) as any;
 
       // 创建测试文件
       const file = new File(["test content"], "test.jpg", {
@@ -123,21 +149,28 @@ describe("fileUtils", () => {
 
     it("应该在非字符串结果时拒绝Promise", async () => {
       // 模拟FileReader返回非字符串结果的行为
-      const mockFileReaderInstance = {
-        onload: null as any,
-        onerror: null as any,
-        readAsDataURL: vi.fn().mockImplementation(function () {
-          setTimeout(() => {
-            this.result = new ArrayBuffer(8); // 非字符串结果
-            this.onload();
-          }, 0);
-        }),
+      const mockFileReader = {
+        onload: null as
+          | ((this: MockFileReader, ev: ProgressEvent<FileReader>) => any)
+          | null,
+        onerror: null as
+          | ((this: MockFileReader, ev: ProgressEvent<FileReader>) => any)
+          | null,
+        readAsDataURL: vi
+          .fn()
+          .mockImplementation(function (this: MockFileReader) {
+            setTimeout(() => {
+              this.result = new ArrayBuffer(8); // 非字符串结果
+              if (this.onload)
+                this.onload.call(this, new ProgressEvent("load") as any);
+            }, 0);
+          }),
         result: null,
       };
 
       // 模拟全局FileReader构造函数
       const originalFileReader = global.FileReader;
-      global.FileReader = vi.fn(() => mockFileReaderInstance) as any;
+      global.FileReader = vi.fn(() => mockFileReader) as any;
 
       // 创建测试文件
       const file = new File(["test content"], "test.jpg", {
@@ -175,19 +208,26 @@ describe("fileUtils", () => {
 
     it("应该将图片文件转换为Image类型的MediaContent", async () => {
       // 模拟FileReader成功读取图片
-      const mockFileReaderInstance = {
-        onload: null as any,
-        onerror: null as any,
-        readAsDataURL: vi.fn().mockImplementation(function () {
-          setTimeout(() => {
-            this.result = "data:image/jpeg;base64,mockimagedata";
-            this.onload();
-          }, 0);
-        }),
+      const mockFileReader = {
+        onload: null as
+          | ((this: MockFileReader, ev: ProgressEvent<FileReader>) => any)
+          | null,
+        onerror: null as
+          | ((this: MockFileReader, ev: ProgressEvent<FileReader>) => any)
+          | null,
+        readAsDataURL: vi
+          .fn()
+          .mockImplementation(function (this: MockFileReader) {
+            setTimeout(() => {
+              this.result = "data:image/jpeg;base64,mockimagedata";
+              if (this.onload)
+                this.onload.call(this, new ProgressEvent("load") as any);
+            }, 0);
+          }),
         result: null,
       };
 
-      global.FileReader = vi.fn(() => mockFileReaderInstance) as any;
+      global.FileReader = vi.fn(() => mockFileReader) as any;
 
       // 创建图片文件
       const imageFile = new File(["image content"], "photo.jpg", {
@@ -210,19 +250,26 @@ describe("fileUtils", () => {
 
     it("应该将PDF文件转换为PDF类型的MediaContent", async () => {
       // 模拟FileReader成功读取PDF
-      const mockFileReaderInstance = {
-        onload: null as any,
-        onerror: null as any,
-        readAsDataURL: vi.fn().mockImplementation(function () {
-          setTimeout(() => {
-            this.result = "data:application/pdf;base64,mockpdfdata";
-            this.onload();
-          }, 0);
-        }),
+      const mockFileReader = {
+        onload: null as
+          | ((this: MockFileReader, ev: ProgressEvent<FileReader>) => any)
+          | null,
+        onerror: null as
+          | ((this: MockFileReader, ev: ProgressEvent<FileReader>) => any)
+          | null,
+        readAsDataURL: vi
+          .fn()
+          .mockImplementation(function (this: MockFileReader) {
+            setTimeout(() => {
+              this.result = "data:application/pdf;base64,mockpdfdata";
+              if (this.onload)
+                this.onload.call(this, new ProgressEvent("load") as any);
+            }, 0);
+          }),
         result: null,
       };
 
-      global.FileReader = vi.fn(() => mockFileReaderInstance) as any;
+      global.FileReader = vi.fn(() => mockFileReader) as any;
 
       // 创建PDF文件
       const pdfFile = new File(["pdf content"], "document.pdf", {
@@ -259,19 +306,27 @@ describe("fileUtils", () => {
     it("应该在文件转换过程中出错时返回null并记录错误", async () => {
       // 模拟FileReader失败
       const mockError = new Error("读取文件失败");
-      const mockFileReaderInstance = {
-        onload: null as any,
-        onerror: null as any,
-        readAsDataURL: vi.fn().mockImplementation(function () {
-          setTimeout(() => {
-            this.error = mockError;
-            this.onerror();
-          }, 0);
-        }),
-        error: null,
+      const mockFileReader = {
+        onload: null as
+          | ((this: MockFileReader, ev: ProgressEvent<FileReader>) => any)
+          | null,
+        onerror: null as
+          | ((this: MockFileReader, ev: ProgressEvent<FileReader>) => any)
+          | null,
+        readAsDataURL: vi
+          .fn()
+          .mockImplementation(function (this: MockFileReader) {
+            setTimeout(() => {
+              this.error = mockError;
+              if (this.onerror)
+                this.onerror.call(this, new ProgressEvent("error") as any);
+            }, 0);
+          }),
+        error: null as Error | null,
+        result: null,
       };
 
-      global.FileReader = vi.fn(() => mockFileReaderInstance) as any;
+      global.FileReader = vi.fn(() => mockFileReader) as any;
 
       // 创建测试文件
       const imageFile = new File(["image data"], "broken.jpg", {
