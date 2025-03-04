@@ -4,6 +4,9 @@ import {
   sendStreamMessageWithCozeSdk,
 } from "@/services/cozeSdkService";
 
+// 添加Edge运行时配置
+export const runtime = "edge";
+
 export const dynamic = "force-dynamic"; // 确保每次请求都重新生成响应
 
 export async function POST(request: Request) {
