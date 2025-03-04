@@ -60,3 +60,44 @@ body {
 .streaming-cursor {
   @apply inline-block w-2 h-4 bg-black ml-1 align-middle animate-blink;
 }
+
+/* 打字机效果样式 */
+.typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+}
+
+.typing-indicator .dot {
+  width: 4px;
+  height: 4px;
+  margin: 0 1px;
+  background-color: #555;
+  border-radius: 50%;
+  animation: typingAnimation 1.4s infinite ease-in-out;
+}
+
+.typing-indicator .dot:nth-child(1) {
+  animation-delay: 0s;
+}
+.typing-indicator .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.typing-indicator .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingAnimation {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+}

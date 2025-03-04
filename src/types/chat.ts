@@ -14,6 +14,7 @@ export enum MessageRole {
 // 消息状态枚举 - 定义消息的当前处理状态
 export enum MessageStatus {
   Sending = "sending", // 消息正在发送中
+  Loading = "loading", // 消息接收中（流式接收状态）
   Success = "success", // 消息发送成功
   Error = "error", // 消息发送失败
 }
