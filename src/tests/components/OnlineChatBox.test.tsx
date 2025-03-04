@@ -219,7 +219,15 @@ describe("OnlineChatBox组件", () => {
     // 使用自定义的加载指示器
     render(
       <OnlineChatBox
-        initialMessages={[{ role: "user", content: "测试消息" }]}
+        initialMessages={[
+          {
+            id: "test-message-1",
+            role: MessageRole.User,
+            content: "测试消息",
+            timestamp: Date.now(),
+            status: MessageStatus.Success,
+          },
+        ]}
         loadingComponent={
           <div data-testid="custom-loader">自定义加载中...</div>
         }
@@ -253,7 +261,15 @@ describe("OnlineChatBox组件", () => {
   it.skip("应在加载状态下禁用输入框", async () => {
     render(
       <OnlineChatBox
-        initialMessages={[{ role: "user", content: "测试消息" }]}
+        initialMessages={[
+          {
+            id: "test-message-2",
+            role: MessageRole.User,
+            content: "测试消息",
+            timestamp: Date.now(),
+            status: MessageStatus.Success,
+          },
+        ]}
       />
     );
 
@@ -264,7 +280,7 @@ describe("OnlineChatBox组件", () => {
     fireEvent.change(input, { target: { value: "新消息" } });
 
     // 获取发送按钮并点击
-    const sendButton = screen.getByLabelText("发送消息");
+    const sendButton = screen.getByLabelText("发送消息") as HTMLButtonElement;
     fireEvent.click(sendButton);
 
     // 验证输入框被禁用
