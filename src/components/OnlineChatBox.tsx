@@ -3,7 +3,7 @@
  * 在线聊天框组件
  */
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Message as MessageType,
   MessageRole,
@@ -39,7 +39,11 @@ const OnlineChatBox: React.FC<OnlineChatBoxProps> = ({
   inputClassName = "",
   messagesClassName = "",
   placeholder = "输入消息...",
-  loadingComponent = <div className="text-sm text-gray-500">正在思考...</div>,
+  loadingComponent = (
+    <div data-testid="loading-indicator" className="text-sm text-gray-500">
+      正在思考...
+    </div>
+  ),
   emptyStateComponent = (
     <div className="text-center text-gray-500 p-4">
       开始对话吧！发送一条消息。
@@ -70,18 +74,30 @@ const OnlineChatBox: React.FC<OnlineChatBoxProps> = ({
   // 滚动到底部
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (
+      messagesEndRef.current &&
+      typeof messagesEndRef.current.scrollIntoView === "function"
+    ) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages, currentStreamingMessage?.content]);
 
-  // 清理函数：取消请求
   useEffect(() => {
+    // 组件卸载时取消请求
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current();
+      if (
+        abortControllerRef.current &&
+        typeof abortControllerRef.current === "function"
+      ) {
+        try {
+          abortControllerRef.current();
+        } catch (error) {
+          console.error("取消请求时出错:", error);
+        }
       }
     };
   }, []);
@@ -107,14 +123,22 @@ const OnlineChatBox: React.FC<OnlineChatBoxProps> = ({
     }
   };
 
+  // 取消当前请求
+  const cancelRequest = useCallback(() => {
+    if (
+      abortControllerRef.current &&
+      typeof abortControllerRef.current === "function"
+    ) {
+      abortControllerRef.current();
+      abortControllerRef.current = null;
+    }
+  }, []);
+
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
 
     // 如果有正在进行的请求，先取消
-    if (abortControllerRef.current) {
-      abortControllerRef.current();
-      abortControllerRef.current = null;
-    }
+    cancelRequest();
 
     // 如果有当前正在流式传输的消息，先添加到消息列表
     if (currentStreamingMessage && currentStreamingMessage.content) {
