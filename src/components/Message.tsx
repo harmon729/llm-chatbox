@@ -41,9 +41,11 @@ import ReactMarkdown from "react-markdown";
  * 组件接收的属性类型定义
  *
  * @property {MessageType} message - 包含消息的完整数据对象
+ * @property {boolean} isTyping - 是否显示打字机效果
  */
 interface MessageProps {
   message: MessageType;
+  isTyping?: boolean;
 }
 
 /**
@@ -163,8 +165,9 @@ const MediaPreview = ({
  *
  * @param {Object} props - 组件属性
  * @param {MessageType} props.message - 消息对象
+ * @param {boolean} props.isTyping - 是否显示打字机效果
  */
-const Message: React.FC<MessageProps> = ({ message }) => {
+const Message: React.FC<MessageProps> = ({ message, isTyping = false }) => {
   // 从消息对象中解构属性
   const { role, content, media, status } = message;
 
@@ -220,6 +223,10 @@ const Message: React.FC<MessageProps> = ({ message }) => {
     );
   }
 
+  // 检查是否应显示打字机效果
+  const shouldShowTypingIndicator =
+    isTyping || status === MessageStatus.Loading;
+
   // 处理正常消息内容
   return (
     <div className={containerClasses}>
@@ -246,20 +253,31 @@ const Message: React.FC<MessageProps> = ({ message }) => {
           // 机器人消息 - 支持Markdown和代码块
           <div className="prose max-w-none prose-sm dark:prose-invert">
             {/* 分割并处理文本和代码块 */}
-            {splitTextByCodeBlocks(content).map((part, index) => (
-              <div key={index}>
-                {part.type === "text" ? (
-                  // 渲染普通文本，使用ReactMarkdown支持Markdown语法
-                  <ReactMarkdown>{part.content}</ReactMarkdown>
-                ) : (
-                  // 渲染代码块，使用CodeBlock组件
-                  <CodeBlock
-                    language={part.language || ""}
-                    code={part.content}
-                  />
-                )}
-              </div>
-            ))}
+            {content ? (
+              splitTextByCodeBlocks(content).map((part, index) => (
+                <div key={index}>
+                  {part.type === "code" ? (
+                    <CodeBlock
+                      language={part.language || ""}
+                      code={part.content}
+                    />
+                  ) : (
+                    <ReactMarkdown>{part.content}</ReactMarkdown>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p>无内容</p>
+            )}
+
+            {/* 打字机效果的光标指示器 */}
+            {shouldShowTypingIndicator && (
+              <span className="typing-indicator ml-1 inline-flex">
+                <span className="dot"></span>
+                <span className="dot"></span>
+                <span className="dot"></span>
+              </span>
+            )}
           </div>
         )}
       </div>

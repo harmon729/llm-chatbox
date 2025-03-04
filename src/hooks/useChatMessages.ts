@@ -141,22 +141,21 @@ export const useChatMessages = (initialMessages: Message[] = []) => {
   }, []);
 
   /**
-   * 发送消息到AI
-   * 创建用户和机器人消息，发送请求并处理流式响应
+   * 发送消息到AI并处理响应
    *
-   * useCallback钩子用于记忆函数，防止不必要的重新渲染
-   *
-   * @param {string} text - 要发送的消息文本
-   * @param {MediaContent[]} [media=[]] - 要发送的媒体内容数组
+   * @param text 消息文本内容
+   * @param media 可选的媒体内容数组
+   * @returns
    */
   const sendMessage = useCallback(
     async (text: string, media: MediaContent[] = []) => {
-      // 验证输入，如果文本为空且没有媒体，则不发送
-      if (!text.trim() && (!media || media.length === 0)) {
+      // 验证输入
+      if (!text.trim() && media.length === 0) {
+        console.warn("消息内容为空，取消发送");
         return;
       }
 
-      // 如果有正在进行的请求，先取消它
+      // 如果有取消函数，先取消前一个请求
       if (cancelRequest.current) {
         cancelRequest.current();
         cancelRequest.current = null;
@@ -220,24 +219,23 @@ export const useChatMessages = (initialMessages: Message[] = []) => {
           const lastMessage = updatedMessages[updatedMessages.length - 1];
 
           if (lastMessage && lastMessage.role === MessageRole.Bot) {
+            // 如果最后一条消息是机器人消息，则更新它为错误状态
             updatedMessages[updatedMessages.length - 1] = {
               ...lastMessage,
+              content:
+                lastMessage.content || "抱歉，我无法回应您的请求。请稍后再试。",
               status: MessageStatus.Error,
-              content: lastMessage.content || "发生错误，请重试",
             };
           }
 
           return updatedMessages;
         });
 
-        // 重置加载状态
+        // 处理完错误后重置加载状态
         setIsLoading(false);
       }
-
-      // 注意：不要在这里设置isLoading为false
-      // 而是依赖onComplete回调来设置isLoading状态
     },
-    [] // 依赖数组为空，表示这个函数不依赖于任何props或state
+    [setMessages, setIsLoading, setError] // 依赖项
   );
 
   /**

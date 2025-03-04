@@ -215,3 +215,36 @@ MIT
 1. 单测覆盖率超过 80%；
 2. 有完善的 CI 流水线，并在 CI 中执行构建、自动测试、Lint 检查、ts 检查等检测动作；
 3. 有完善的 CD 流水线，实现发布动作自动化；
+
+## Coze SDK 集成
+
+本项目已集成 Coze Node.js SDK，可以直接与 Coze 平台进行通信。
+
+### 配置步骤
+
+1. 安装 Coze SDK：
+
+   ```bash
+   npm install @coze/api
+   ```
+
+2. 配置环境变量：
+   在`.env.local`文件中添加以下配置：
+
+   ```
+   NEXT_PUBLIC_COZE_API_KEY=your_coze_api_key_here
+   NEXT_PUBLIC_COZE_BOT_ID=your_coze_bot_id_here
+   ```
+
+3. 使用 SDK：
+   - 项目已创建`src/services/cozeSdkService.ts`服务文件
+   - API 路由`src/app/api/chat/route.ts`已配置为使用 SDK
+   - 前端服务`src/services/apiService.ts`已更新为使用 SDK 服务
+
+### 自定义配置
+
+如需自定义 Coze SDK 配置，可以修改以下文件：
+
+- `src/services/cozeSdkService.ts`：修改 SDK 初始化和消息处理逻辑
+- `src/app/api/chat/route.ts`：修改 API 路由处理逻辑
+- `.env.local`：更新环境变量
