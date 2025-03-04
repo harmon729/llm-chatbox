@@ -8,9 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "test": "vitest run",
+    "test": "vitest",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage --reporter=verbose",
+    "test:ci": "vitest run --coverage --reporter=verbose --coverage.thresholds.branches=75 --coverage.thresholds.functions=75 --coverage.thresholds.lines=65 --coverage.thresholds.statements=65",
     "security-check": "audit-ci --config .audit-ci.json"
   },
   "dependencies": {

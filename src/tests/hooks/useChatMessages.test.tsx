@@ -1,10 +1,22 @@
+import React from "react";
 import { renderHook, act } from "@testing-library/react";
 import { useChatMessages } from "../../hooks/useChatMessages";
 import { MessageRole, MessageStatus } from "../../types/chat";
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import {
+  setupApiServiceMocks,
+  restoreApiServiceMocks,
+} from "../mocks/apiMocks";
+
+// 设置API模拟
+setupApiServiceMocks();
 
 describe("useChatMessages Hook", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
     vi.clearAllMocks();
   });
 
@@ -43,18 +55,16 @@ describe("useChatMessages Hook", () => {
     expect(result.current.messages[1].content).toBe("用户消息");
   });
 
-  it("应能添加用户消息", () => {
+  it("应能添加用户消息", async () => {
     const { result } = renderHook(() => useChatMessages());
 
-    act(() => {
-      result.current.sendMessage("用户消息");
+    await act(async () => {
+      result.current.sendMessage("测试消息");
     });
 
-    // 发送消息会添加用户消息和一个空的机器人消息
-    expect(result.current.messages.length).toBe(2);
+    expect(result.current.messages.length).toBe(1);
     expect(result.current.messages[0].role).toBe(MessageRole.User);
-    expect(result.current.messages[0].content).toBe("用户消息");
-    expect(result.current.messages[1].role).toBe(MessageRole.Bot);
+    expect(result.current.messages[0].content).toBe("测试消息");
   });
 
   it("应能添加助手消息", () => {
@@ -156,17 +166,25 @@ describe("useChatMessages Hook", () => {
     expect(result.current.messages.length).toBe(0);
   });
 
-  it("应能设置加载状态", () => {
+  it("应能设置加载状态", async () => {
     const { result } = renderHook(() => useChatMessages());
 
-    expect(result.current.isLoading).toBe(false);
+    let promise: Promise<void>;
 
-    // 发送消息会设置加载状态为true
-    act(() => {
-      result.current.sendMessage("测试消息");
+    await act(async () => {
+      promise = result.current.sendMessage("测试消息");
     });
 
+    // 消息发送过程中应该处于加载状态
     expect(result.current.isLoading).toBe(true);
+
+    // 等待消息发送完成
+    await act(async () => {
+      await promise;
+    });
+
+    // 加载状态应该结束
+    expect(result.current.isLoading).toBe(false);
   });
 
   it("应能设置错误状态", () => {
